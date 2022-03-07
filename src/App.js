@@ -1,23 +1,22 @@
-import logo from './logo.svg';
-import './App.css';
+import NavBar from "./components/navabar.component";
+import CitizenListMDG from "./pages/citizenList.muiDataGrid.page";
+import {Routes, Route} from "react-router";
+import CitizenListRT from "./pages/citizenList.ReactTable.page";
+import Error404Page from "./pages/Error404.page";
+
 
 function App() {
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <NavBar/>
+      <div>
+        <Routes>
+          <Route exact path={'/'} element={<CitizenListMDG/>}/>
+          <Route path={'/mui-table'} element={<CitizenListMDG/>}/>
+          <Route path={'/react-table'} element={<CitizenListRT/>}/>
+          <Route path={'*'} element={<Error404Page/>}/>
+        </Routes>
+      </div>
     </div>
   );
 }
