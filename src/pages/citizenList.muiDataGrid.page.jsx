@@ -1,8 +1,10 @@
 import React, {useEffect, useState} from "react";
 import {DataGrid} from "@mui/x-data-grid";
 import CitizenService from "../services/citizen.service";
-import {Paper, TablePagination} from "@mui/material";
+import {FormControl, Grid, InputLabel, LinearProgress, Pagination, Paper, Select, TablePagination} from "@mui/material";
 import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import MenuItem from "@mui/material/MenuItem";
 
 const CitizenListMDG = (props) => {
 	const [rows, setRows] = useState([]);
@@ -70,42 +72,50 @@ const CitizenListMDG = (props) => {
 	useEffect(retrieveCitizens, [page, pageSize]);
 
 	const columns = [
-		{field: 'id', headerName: 'id', width: 90},
+		{field: 'id', headerName: 'id', minWidth: 70, hide: true},
 		{
 			field: "surname",
 			headerName: "Surname",
-			width: 150,
+			minWidth: 150,
+		  flex: 1,
 		},
 		{
 			field: "name",
 			headerName: "First Name",
-			width: 150,
+			minWidth: 150,
+			flex: 1,
 		},
 		{
 			field: "dob",
 			headerName: "Date of Birth",
-			width: 110,
+			minWidth: 110,
+			maxWidth: 150,
 			type: 'date',
+			flex: 1,
 		},
 		{
 			field: "gender",
 			headerName: "Gender",
-			width: 80,
+			minWidth: 80,
+			maxWidth: 120,
 		},
 		{
 			field: "address",
 			headerName: "Address",
-			width: 250,
+			minWidth: 250,
+			flex: 1,
 		},
 		{
 			field: "constituency",
 			headerName: "Parish",
-			width: 150,
+			minWidth: 150,
+			flex: 1,
 		},
 		{
 			field: "rs",
 			headerName: "Status",
-			width: 60,
+			minWidth: 60,
+			flex: 1,
 		},
 		{
 			field: 'actions',
@@ -122,23 +132,135 @@ const CitizenListMDG = (props) => {
 					</Button>
 				</strong>
 			),
+			//minWidth: 80,
+			width: 90,
+			//flex: 1,
 		},
 	]
 
 
+	const CustomPaginationGrid = () =>{
+		return(
+			<Grid container justifyItems={'right'} spacing={'2'} sx={{position: 'relative' }}>
+				<Grid item xs={4} style={{padding: '5'}}>
+					{"Items per Page: "}
+					<select onChange={handlePageSizeChange} value={pageSize}>
+						{pageSizes.map((size) => (
+							<option key={size} value={size}>
+								{size}
+							</option>
+						))}
+					</select>
+				</Grid>
+
+				<Grid item xs={8}>
+					<Pagination
+						sx={{ flexDirection: 'row-reverse' }}
+						//className="my-3"
+						count={count}
+						page={page}
+						siblingCount={1}
+						boundaryCount={1}
+						//variant="outlined"
+						shape="rounded"
+						onChange={handlePageChange}
+					/>
+				</Grid>
+
+			</Grid>
+		)
+	}
+
+	const CustomPagination = () =>{
+		return(
+			<Box sx={{
+				display: 'flex',
+				flexDirection: 'row',
+				flexWrap: 'wrap',
+				p: 1,
+				m: 1,
+				borderRadius: 1,
+			}}>
+				<Box sx={{flexDirection: 'row', paddingRight:2, alignItems: 'center'}}>
+					{"Items per Page: "}
+					<select onChange={handlePageSizeChange} value={pageSize} label="Rows">
+
+						{pageSizes.map((size) => (
+							<option key={size} value={size}>
+								{size}
+							</option>
+						))}
+					</select>
+					<FormControl sx={{mx:1, minWidth: 150 }}>
+						<InputLabel id="demo-simple-select-label">{'Items per Page'}</InputLabel>
+						<Select
+							labelId="demo-simple-select-label"
+							id="demo-simple-select"
+							//value={{pageSize}}
+							//autoWidth
+							label="Items per Page"
+							onChange={handlePageSizeChange}
+						>
+							<MenuItem value="">
+								<em>None</em>
+							</MenuItem>
+							{pageSizes.map((size) => (
+								<MenuItem key={size} value={size}>
+									{size}
+								</MenuItem>
+							))}
+						</Select>
+					</FormControl>
+				</Box>
+
+				<Box sx={{flexDirection: 'row-reverse'}}>
+					<Pagination
+						sx={{ flexDirection: 'row-reverse' }}
+						//className="my-3"
+						count={count}
+						page={page}
+						siblingCount={1}
+						boundaryCount={1}
+						//variant="outlined"
+						shape="rounded"
+						onChange={handlePageChange}
+					/>
+				</Box>
+
+			</Box>
+		)
+	}
+
 	return (
-		<div className="col-md-8">
+		<Box sx={{justifyContent:'center', py:5, px:15}} >
 			<h1>MUI Data-Grid</h1>
-			<Paper elevation={15} style={{ height: "auto", width: '90%'}}>
+			<Paper elevation={15} style={{ height: "auto", minWidth:'1210'}} sx={{ display: 'flex', flexWrap: 'wrap' }}>
+				//TO-DO add search/filter functionality
+			</Paper>
+			<Paper elevation={15} style={{ height: "auto", minWidth:'1210'}} sx={{ display: 'flex', flexWrap: 'wrap' }}>
 				<DataGrid
+					sx={{
+						m: 2,
+						boxShadow: 2,
+						border: 2,
+						borderColor: 'primary.light',
+						'& .MuiDataGrid-cell:hover': {
+							color: 'primary.main',
+						},
+				}}
 					rows={rows}
 					columns={columns}
 					pageSize={pageSize}
 					rowsPerPageOptions={pageSizes}
-					loading={isloading}
 					autoHeight
 					checkboxSelection
 					disableSelectionOnClick
+					components={{
+						LoadingOverlay: LinearProgress, //for linear loading bar
+						Pagination: CustomPagination //Custom pagination
+					}}
+					loading={isloading}
+
 					pagination
 					paginationMode={"server"}
 					rowCount={count}
@@ -156,7 +278,7 @@ const CitizenListMDG = (props) => {
 				/>*/}
 			</Paper>
 
-		</div>
+		</Box>
 	);
 };
 
