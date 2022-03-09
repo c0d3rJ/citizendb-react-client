@@ -1,22 +1,24 @@
-import React, {useEffect, useMemo, useState} from "react";
+import React, {useEffect, useState} from "react";
 import {DataGrid} from "@mui/x-data-grid";
 import CitizenService from "../services/citizen.service";
+import FilterTableComponent from "../components/filterTable.component";
 import {
 	FormControl,
 	InputLabel,
-	LinearProgress,
+	LinearProgress, Modal,
 	Pagination,
 	Paper,
-	Select,
-	TextField
+	Select, Table, TableBody, TableCell, TableHead, TableRow,
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import MenuItem from "@mui/material/MenuItem";
+import Typography from "@mui/material/Typography";
+
 
 const CitizenListMDG = (props) => {
 
-	const [rows, setRows] = useState([]);
+	const [data, setData] = useState([]);
 
 	const [searchName, setSearchName] = useState("");
 	const [searchSurname, setSearchSurname] = useState("");
@@ -26,6 +28,12 @@ const CitizenListMDG = (props) => {
 	const [count, setCount] = useState(0);
 	const [pageSize, setPageSize] = useState(10);
 	const [isloading, setIsloading] = useState(false)
+
+	const [open, setOpen] = useState(false);
+	const handleOpen = () => setOpen(true);
+	const handleClose = () => setOpen(false)
+	const [rowModalId, setRowModalId] = useState('')
+	const [citizenView, setCitizenView] = useState([])
 
 	const pageSizes = [{ id: 1, value: 5},{ id: 2, value: 10},{ id: 3, value: 20}, ];
 
@@ -57,11 +65,24 @@ const CitizenListMDG = (props) => {
 		CitizenService.filterByNamesAndDoB(params)
 			.then((response) => {
 				const {content, totalPages} = response.data;
-				const rows1 = content
-				setRows(rows1)
+				//const rows1 = content
+				setData(content)
 				setCount(totalPages);
 				setPageSize(pageSize);
 				setIsloading(false)
+			})
+			.catch((e) => {
+				console.log(e);
+			});
+	};
+
+	const retrieveCitizen = (id) => {
+		//const id = rowModalId
+		console.debug(id)
+		CitizenService.getById(id)
+			.then((response) => {
+				setCitizenView(response.data)
+				console.debug(response.data)
 			})
 			.catch((e) => {
 				console.log(e);
@@ -77,6 +98,12 @@ const CitizenListMDG = (props) => {
 		setPageSize(event.target.value);
 		setPage(1);
 	};
+
+	const openRow = (event) => {
+		setRowModalId(event.target.value)
+		retrieveCitizen(event.target.value);
+		handleOpen();
+	}
 
 	useEffect(retrieveCitizens,[page,pageSize]);
 
@@ -149,18 +176,25 @@ const CitizenListMDG = (props) => {
 		{
 			field: 'actions',
 			headerName: 'Actions',
-			renderCell: () => (
+
+			renderCell: (param) =>{
+				const rowId = param.row.id
+				//console.log(rowId)
+				return (
 				<strong>
 					<Button
+						value={rowId}
 						variant="contained"
 						color="primary"
 						size="small"
 						style={{ }}
+						onClick={openRow}
+						//onClick={handleOpen}
 					>
 						View
 					</Button>
 				</strong>
-			),
+			)},
 			//minWidth: 80,
 			width: 90,
 			//flex: 1,
@@ -214,50 +248,60 @@ const CitizenListMDG = (props) => {
 		<Box sx={{justifyContent:'center', pb:30, px:15}} >
 			<h1>MUI Data-Grid</h1>
 
-			<Paper elevation={5} style={{ height: "120", minWidth:'1210'}} sx={{ display: 'flex', flexWrap: 'wrap', mb:3 }}>
-				<Box sx={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap', p: 1, borderRadius: 1,}}>
-					{/*Surname*/}
-					<TextField
-						variant="outlined"
-						sx={{ m: 1, width: '25ch' }}
-						label="Search by Surname"
-						//value={searchSurname}
-						//defaultValue={""}
-						//onFocus={onChangeSearchSurname}
-						onChange={onChangeSearchSurname}
-					/>
-					{/*Name*/}
-					<TextField
-						variant="outlined"
-						sx={{ m: 1, width: '25ch' }}
-						label="Search by Name"
-						//value={searchName}
-						onChange={onChangeSearchName}
-					/>
-					{/*Dob*/}
-					<TextField
-						variant="outlined"
-						sx={{ m: 1, width: '25ch' }}
-						type="date"
-						className="form-control"
-						label="Filter by Date of Birth"
-						InputLabelProps={{
-							shrink: true,
-						}}
-						//value={searchDob}
-						onChange={onChangeSearchDob}
-					/>
-					<Button
-						variant="outlined"
-						sx={{ m: 1, width: '15ch' }}
-						className="btn btn-outline-secondary"
-						type="button"
-						onClick={filterByNamesAndDoB}
-					>
-						Search
-					</Button>
+			<Modal
+				open={open}
+				onClose={handleClose}
+				aria-labelledby="modal-modal-title"
+				aria-describedby="modal-modal-description"
+			>
+				<Box sx={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', border: '2px solid #000', boxShadow: 24, p: 4,}}>
+					<Typography id="modal-modal-title" variant="h6" component="h2">
+						Citizen View
+					</Typography>
+					<Typography id="modal-modal-description" sx={{ mt: 2 }}>
+						<Table>
+							<TableBody>
+								<TableRow>
+									<TableCell>Full Name</TableCell>
+									<TableCell align="right">{citizenView.name} {citizenView.surname}</TableCell>
+								</TableRow>
+								<TableRow>
+									<TableCell>Date of Birth</TableCell>
+									<TableCell align="right">{citizenView.dob}</TableCell>
+								</TableRow>
+								<TableRow>
+									<TableCell>National Registration Number</TableCell>
+									<TableCell align="right">{citizenView.nrn}</TableCell>
+								</TableRow>
+							</TableBody>
+							<TableRow>
+								<TableCell>Gender</TableCell>
+								<TableCell align="right">{citizenView.gender == 'M' ? 'MALE' : 'FEMALE'}
+								</TableCell>
+							</TableRow>
+							<TableRow>
+								<TableCell>Address</TableCell>
+								<TableCell align="right">{citizenView.address}</TableCell>
+							</TableRow>
+							<TableRow>
+								<TableCell>Parish</TableCell>
+								<TableCell align="right">{citizenView.constituency}</TableCell>
+							</TableRow>
+						</Table>
+					</Typography>
 				</Box>
+			</Modal>
 
+			<Paper elevation={5} style={{ height: "120", minWidth:'1210'}} sx={{ display: 'flex', flexWrap: 'wrap', mb:3 }}>
+				<FilterTableComponent
+					onChangeSearchSurname={onChangeSearchSurname}
+					onChangeSearchName={onChangeSearchName}
+					onChangeSearchDob={onChangeSearchDob}
+					filterByNamesAndDoB={filterByNamesAndDoB}
+					//searchSurname={searchSurname}
+					//searchName={searchName}
+					//searchDob={searchDob}
+				/>
 			</Paper>
 			<Paper elevation={15} style={{ height: "auto", minWidth:'1210'}} sx={{ display: 'flex', flexWrap: 'wrap' }}>
 				<DataGrid
@@ -270,7 +314,7 @@ const CitizenListMDG = (props) => {
 							color: 'primary.main',
 						},
 					}}
-					rows={rows}
+					rows={data}
 					columns={columns}
 					pageSize={pageSize}
 					rowsPerPageOptions={pageSizes}
