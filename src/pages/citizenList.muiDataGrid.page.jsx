@@ -5,35 +5,35 @@ import FilterTableComponent from "../components/filterTable.component";
 import {
 	FormControl,
 	InputLabel,
-	LinearProgress, Modal,
+	LinearProgress,
 	Pagination,
 	Paper,
-	Select, Table, TableBody, TableCell, TableHead, TableRow,
+	Select
 } from "@mui/material";
 import Button from "@mui/material/Button";
 import Box from "@mui/material/Box";
 import MenuItem from "@mui/material/MenuItem";
-import Typography from "@mui/material/Typography";
+import CitizenViewComponent from "../components/citizenView.component";
+import PaginationComponent from "../components/pagination.component";
 
 
 const CitizenListMDG = (props) => {
-
+	//Table Data
 	const [data, setData] = useState([]);
-
+	//For Search Filter
 	const [searchName, setSearchName] = useState("");
 	const [searchSurname, setSearchSurname] = useState("");
 	const [searchDob, setSearchDob] = useState("");
-
+	//For Pagination
 	const [page, setPage] = useState(1);
 	const [count, setCount] = useState(0);
 	const [pageSize, setPageSize] = useState(10);
 	const [isloading, setIsloading] = useState(false)
-
+	//For Modal
 	const [open, setOpen] = useState(false);
 	const handleOpen = () => setOpen(true);
-	const handleClose = () => setOpen(false)
-	const [rowModalId, setRowModalId] = useState('')
-	const [citizenView, setCitizenView] = useState([])
+	const handleClose = () => {setOpen(false); setCitizenViewData([])}
+	const [citizenViewData, setCitizenViewData] = useState([])
 
 	const pageSizes = [{ id: 1, value: 5},{ id: 2, value: 10},{ id: 3, value: 20}, ];
 
@@ -65,7 +65,6 @@ const CitizenListMDG = (props) => {
 		CitizenService.filterByNamesAndDoB(params)
 			.then((response) => {
 				const {content, totalPages} = response.data;
-				//const rows1 = content
 				setData(content)
 				setCount(totalPages);
 				setPageSize(pageSize);
@@ -77,12 +76,10 @@ const CitizenListMDG = (props) => {
 	};
 
 	const retrieveCitizen = (id) => {
-		//const id = rowModalId
 		console.debug(id)
 		CitizenService.getById(id)
 			.then((response) => {
-				setCitizenView(response.data)
-				console.debug(response.data)
+				setCitizenViewData(response.data)
 			})
 			.catch((e) => {
 				console.log(e);
@@ -100,7 +97,6 @@ const CitizenListMDG = (props) => {
 	};
 
 	const openRow = (event) => {
-		setRowModalId(event.target.value)
 		retrieveCitizen(event.target.value);
 		handleOpen();
 	}
@@ -201,6 +197,9 @@ const CitizenListMDG = (props) => {
 		},
 	]
 
+	//PaginationComponent({handlePageSizeChange, handlePageChange, pageSize, page, count})
+	//CitizenViewComponent({citizenViewData, handleClose, open})
+
 	const CustomPagination = () =>{
 		return(
 			<Box sx={{display: 'flex',  flexDirection: 'row', p: 1, m: 1, borderRadius: 1, width:'inherit'}}>
@@ -248,49 +247,7 @@ const CitizenListMDG = (props) => {
 		<Box sx={{justifyContent:'center', pb:30, px:15}} >
 			<h1>MUI Data-Grid</h1>
 
-			<Modal
-				open={open}
-				onClose={handleClose}
-				aria-labelledby="modal-modal-title"
-				aria-describedby="modal-modal-description"
-			>
-				<Box sx={{position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', width: 400, bgcolor: 'background.paper', border: '2px solid #000', boxShadow: 24, p: 4,}}>
-					<Typography id="modal-modal-title" variant="h6" component="h2">
-						Citizen View
-					</Typography>
-					<Typography id="modal-modal-description" sx={{ mt: 2 }}>
-						<Table>
-							<TableBody>
-								<TableRow>
-									<TableCell>Full Name</TableCell>
-									<TableCell align="right">{citizenView.name} {citizenView.surname}</TableCell>
-								</TableRow>
-								<TableRow>
-									<TableCell>Date of Birth</TableCell>
-									<TableCell align="right">{citizenView.dob}</TableCell>
-								</TableRow>
-								<TableRow>
-									<TableCell>National Registration Number</TableCell>
-									<TableCell align="right">{citizenView.nrn}</TableCell>
-								</TableRow>
-							</TableBody>
-							<TableRow>
-								<TableCell>Gender</TableCell>
-								<TableCell align="right">{citizenView.gender == 'M' ? 'MALE' : 'FEMALE'}
-								</TableCell>
-							</TableRow>
-							<TableRow>
-								<TableCell>Address</TableCell>
-								<TableCell align="right">{citizenView.address}</TableCell>
-							</TableRow>
-							<TableRow>
-								<TableCell>Parish</TableCell>
-								<TableCell align="right">{citizenView.constituency}</TableCell>
-							</TableRow>
-						</Table>
-					</Typography>
-				</Box>
-			</Modal>
+			<CitizenViewComponent citizenViewData={citizenViewData} handleClose={handleClose} open={open}/>
 
 			<Paper elevation={5} style={{ height: "120", minWidth:'1210'}} sx={{ display: 'flex', flexWrap: 'wrap', mb:3 }}>
 				<FilterTableComponent
@@ -298,9 +255,6 @@ const CitizenListMDG = (props) => {
 					onChangeSearchName={onChangeSearchName}
 					onChangeSearchDob={onChangeSearchDob}
 					filterByNamesAndDoB={filterByNamesAndDoB}
-					//searchSurname={searchSurname}
-					//searchName={searchName}
-					//searchDob={searchDob}
 				/>
 			</Paper>
 			<Paper elevation={15} style={{ height: "auto", minWidth:'1210'}} sx={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -323,6 +277,7 @@ const CitizenListMDG = (props) => {
 					disableSelectionOnClick
 					components={{
 						LoadingOverlay: LinearProgress, //for linear loading bar
+						//Pagination: PaginationComponent //Custom pagination
 						Pagination: CustomPagination //Custom pagination
 					}}
 					loading={isloading}
