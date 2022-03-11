@@ -3,6 +3,8 @@ import CitizenService from "../services/citizen.service";
 import {Link} from "react-router-dom";
 import {useTable} from "react-table";
 import {Pagination} from "@mui/material";
+import CitizenViewComponent from "../components/citizenView.component";
+import Button from "@mui/material/Button";
 
 const CitizenListRT = (props) => {
 	//Table Data
@@ -15,7 +17,11 @@ const CitizenListRT = (props) => {
 	const [page, setPage] = useState(1);
 	const [count, setCount] = useState(0);
 	const [pageSize, setPageSize] = useState(10);
-
+	//For Modal
+	const [open, setOpen] = useState(false);
+	const handleOpen = () => setOpen(true);
+	const handleClose = () => {setOpen(false); setCitizenViewData([])}
+	const [citizenViewData, setCitizenViewData] = useState([])
 
 	const pageSizes = [5, 10, 20];
 
@@ -63,6 +69,17 @@ const CitizenListRT = (props) => {
 			});
 	};
 
+	const retrieveCitizen = (id) => {
+		console.debug(id)
+		CitizenService.getById(id)
+			.then((response) => {
+				setCitizenViewData(response.data)
+			})
+			.catch((e) => {
+				console.log(e);
+			});
+	};
+
 	const handlePageChange = (event, value) => {
 		setPage(value);
 	};
@@ -74,8 +91,11 @@ const CitizenListRT = (props) => {
 
 	const openRow = (rowIndex) => {
 		const id = dataRef.current[rowIndex].id;
-		props.history.push(`/getById/${id}`);
+		retrieveCitizen(id);
+		handleOpen();
+		//props.history.push(`/getById/${id}`);
 	};
+
 	useEffect(retrieveCitizens, [page, pageSize]);
 
 	const onChangeSearchName = (e) => {
@@ -140,6 +160,18 @@ const CitizenListRT = (props) => {
 								<Link to={"/viewCitizens/"+rowIdx} className="btn btn-sm btn-warning action mr-2">
 								View
 								</Link>
+								<Button
+									className="btn btn-sm btn-warning action mr-2"
+									value={rowIdx}
+									//variant="contained"
+									//color="primary"
+									//size="small"
+									//style={{ }}
+									onClick={openRow}
+									//onClick={handleOpen}
+								>
+									View
+								</Button>
               </span>
 						</div>
 					);
@@ -163,6 +195,7 @@ const CitizenListRT = (props) => {
 	return (
 		<div className="list row">
 			<h1>React-Table</h1>
+			<CitizenViewComponent citizenViewData={citizenViewData} handleClose={handleClose} open={open}/>
 			<div className="col-md-8">
 				<div className="input-group mb-3">
 
