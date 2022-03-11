@@ -110,7 +110,6 @@ const CitizenListMDG = (props) => {
 	const onChangeSearchSurname = (e) => {
 		const searchSurname = e.target.value;
 		setSearchSurname(searchSurname);
-		//console.debug(searchSurname);
 	};
 	const onChangeSearchDob = (e) => {
 		const searchDob = e.target.value;
